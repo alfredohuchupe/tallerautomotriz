@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Estado del vehículo{% endblock %}
+{% block content %}
+<section class="wrap section narrow">
+  <h1>Estado de mi vehículo</h1>
+  <p class="muted">Ingresa tu placa (ej. ABC-123) o tu código de reserva (ej. ALT-1001).</p>
+  <form class="search" method="get">
+    <input name="q" value="{{ consulta }}" placeholder="Placa o ticket" required>
+    <button class="btn btn--primary">Consultar</button>
+  </form>
+
+  {% if resultado %}
+    {% if resultado.encontrado %}
+      {% set c = resultado.cita %}
+      <div class="card status">
+        <div class="status__head">
+          <div><h3>{{ c.modelo }}</h3><span class="muted">Placa {{ c.placa or '—' }} · Ticket #{{ c.codigo }}</span></div>
+          <span class="badge">{{ c.estado }}</span>
+        </div>
+        <div class="progress"><div class="progress__bar" style="width: {{ c.avance }}%"></div></div>
+        <p><b>{{ c.avance }}%</b> completado · {{ c.servicio }} · Cita: {{ c.fecha_hora }}</p>
+        <ol class="timeline">
+          {% for paso, umbral in [('Recepción', 0), ('Inspección', 30), ('Reparación', 60), ('Control de calidad', 85), ('Listo para entrega', 100)] %}
+          <li class="{{ 'done' if c.avance >= umbral and (umbral > 0 or c.avance > 0) }}">{{ paso }}</li>
+          {% endfor %}
+        </ol>
+      </div>
+    {% else %}
+      <div class="alert alert--error">{{ resultado.mensaje }}</div>
+    {% endif %}
+  {% endif %}
+</section>
+{% endblock %}

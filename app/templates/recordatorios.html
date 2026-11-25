@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Recordatorios de mantenimiento{% endblock %}
+{% block content %}
+<section class="wrap section">
+  <div class="panel-head">
+    <div>
+      <h1>Recordatorios de mantenimiento</h1>
+      <p class="muted">Versión web del flujo RPA (Power Automate): valida correo y teléfono, prepara correo + WhatsApp y marca al cliente como <b>Enviado</b>.</p>
+    </div>
+    <div class="row-gap">
+      <form method="post" action="{{ url_for('web.recordatorios_ejecutar') }}"><button class="btn btn--primary">▶ Ejecutar flujo</button></form>
+      <form method="post" action="{{ url_for('web.recordatorios_reiniciar') }}"><button class="btn btn--ghost">↺ Reiniciar estados</button></form>
+    </div>
+  </div>
+
+  <div class="card flow">
+    <span>📄 Leer clientes</span><i>→</i><span>✉️ Validar correo<br><code>^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$</code></span><i>→</i>
+    <span>📞 Validar teléfono<br><code>^\d{9}$</code></span><i>→</i><span>📧 Correo + 💬 WhatsApp</span><i>→</i><span>✅ Estado = Enviado</span>
+  </div>
+
+  {% if reporte %}
+  <div class="card report">
+    <h3>Resultado de la ejecución</h3>
+    <p><b>{{ reporte.enviados|length }}</b> enviados · <b>{{ reporte.omitidos|length }}</b> omitidos por datos inválidos · <b>{{ reporte.ya_enviados }}</b> ya enviados anteriormente</p>
+    {% for e in reporte.enviados %}
+      <div class="alert alert--ok">✅ {{ e.nombre }} ({{ e.placa }}) — <a href="{{ e.whatsapp_url }}" target="_blank" rel="noopener">Abrir WhatsApp</a> · <a href="{{ e.mailto_url }}">Abrir correo</a></div>
+    {% endfor %}
+    {% for o in reporte.omitidos %}
+      <div class="alert alert--warn">⚠️ {{ o.nombre }} ({{ o.placa }}) — {{ o.motivo }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="table-wrap card">
+    <table>
+      <thead><tr><th>Cliente</th><th>Placa</th><th>Correo</th><th>Teléfono</th><th>Mantenimiento</th><th>Estado</th><th>Acciones</th></tr></thead>
+      <tbody>
+      {% for c in clientes %}
+        <tr>
+          <td>{{ c.nombre }}</td>
+          <td>{{ c.placa }}</td>
+          <td>{{ c.correo }} {{ '✔️' if c.correo_ok else '❌' }}</td>
+          <td>{{ c.telefono }} {{ '✔️' if c.telefono_ok else '❌' }}</td>
+          <td>{{ c.fecha_mantenimiento }}</td>
+          <td><span class="badge {{ 'badge--ok' if c.estado == 'Enviado' else 'badge--warn' }}">{{ c.estado }}</span></td>
+          <td class="small">{% if c.telefono_ok %}<a href="{{ c.mensajes.whatsapp_url }}" target="_blank" rel="noopener">WhatsApp</a>{% endif %}
+              {% if c.correo_ok %} · <a href="{{ c.mensajes.mailto_url }}">Correo</a>{% endif %}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <form method="post" action="{{ url_for('web.recordatorios_cliente') }}" class="card form">
+    <h3>Registrar cliente para recordatorio</h3>
+    <div class="form__grid">
+      <label>Nombre *<input name="nombre" required></label>
+      <label>Placa *<input name="placa" required placeholder="ABC-123"></label>
+      <label>Correo<input name="correo" type="email"></label>
+      <label>Teléfono (9 dígitos)<input name="telefono" inputmode="numeric"></label>
+      <label>Fecha de mantenimiento *<input name="fecha_mantenimiento" type="date" required></label>
+    </div>
+    <button class="btn btn--primary">Agregar</button>
+  </form>
+</section>
+{% endblock %}

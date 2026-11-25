@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Panel del taller{% endblock %}
+{% block content %}
+<section class="wrap section">
+  <div class="panel-head">
+    <div><h1>Panel del taller</h1><p class="muted">Citas registradas desde la web, la API y el asistente virtual.</p></div>
+    <a class="btn btn--primary" href="{{ url_for('web.recordatorios_view') }}">📲 Recordatorios (RPA)</a>
+  </div>
+  <div class="table-wrap card">
+    <table>
+      <thead><tr><th>Ticket</th><th>Cliente</th><th>Vehículo</th><th>Servicio</th><th>Fecha/Hora</th><th>Origen</th><th>Estado / Avance</th></tr></thead>
+      <tbody>
+      {% for c in citas %}
+        <tr>
+          <td><b>#{{ c.codigo }}</b></td>
+          <td>{{ c.nombre }}<br><span class="muted small">{{ c.telefono }} {{ c.correo }}</span></td>
+          <td>{{ c.modelo }}<br><span class="muted small">{{ c.placa }}</span></td>
+          <td>{{ c.servicio }}</td>
+          <td>{{ c.fecha_hora }}</td>
+          <td><span class="badge">{{ c.origen }}</span></td>
+          <td>
+            <form method="post" action="{{ url_for('web.panel_actualizar', codigo=c.codigo) }}" class="inline-form">
+              <select name="estado">
+                {% for e in ['Agendada', 'Recepción', 'Inspección de mantenimiento', 'En reparación', 'Control de calidad', 'Listo para entrega', 'Entregado'] %}
+                <option {{ 'selected' if e == c.estado }}>{{ e }}</option>
+                {% endfor %}
+              </select>
+              <input type="number" name="avance" min="0" max="100" value="{{ c.avance }}">%
+              <button class="btn btn--small">Guardar</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

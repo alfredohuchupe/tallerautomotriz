@@ -1,0 +1,194 @@
+# ======================================================================
+# Pipeline CI/CD - AutoTaller Pro (Taller Automotriz)
+#   1. build   -> Compilación (dependencias, lint, compileall, arranque)
+#   2. test    -> Pruebas automatizadas (pytest + cobertura >= 80 %)
+#   3. docker  -> Construir imagen, prueba de humo del contenedor, publicar en GHCR
+#   4. deploy  -> Despliegue real del contenedor Docker (entorno production)
+# ======================================================================
+name: CI-CD Taller Automotriz
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  PYTHON_VERSION: "3.12"
+  IMAGE_NAME: ghcr.io/${{ github.repository }}
+
+concurrency:
+  group: ci-cd-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # --------------------------------------------------------------------
+  build:
+    name: 1. Compilación
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+
+      - name: Instalar dependencias
+        run: pip install -r requirements-dev.txt
+
+      - name: Análisis estático (flake8)
+        run: flake8
+
+      - name: Compilar código Python (bytecode)
+        run: python -m compileall -q app wsgi.py
+
+      - name: Verificar que la aplicación arranca
+        run: python -c "from app import create_app; app = create_app(); print('Rutas registradas:', len(list(app.url_map.iter_rules())))"
+
+  # --------------------------------------------------------------------
+  test:
+    name: 2. Pruebas automatizadas
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+
+      - name: Ejecutar pytest con cobertura
+        run: pytest --cov=app --cov-report=term-missing --cov-report=xml --cov-fail-under=80 --junitxml=reports/junit.xml
+
+      - name: Publicar reportes de pruebas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reportes-pruebas
+          path: |
+            reports/junit.xml
+            coverage.xml
+
+  # --------------------------------------------------------------------
+  docker:
+    name: 3. Imagen Docker
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Nombre de imagen en minúsculas
+        run: echo "IMAGE_NAME=${IMAGE_NAME,,}" >> "$GITHUB_ENV"
+
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Construir imagen
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: tallerautomotriz:ci
+          build-args: APP_VERSION=1.0.${{ github.run_number }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Prueba de humo del contenedor
+        run: |
+          docker run -d --name smoke -p 8000:8000 tallerautomotriz:ci
+          for i in $(seq 1 30); do
+            if curl -fs http://localhost:8000/api/health; then echo; break; fi
+            sleep 1
+          done
+          curl -fs http://localhost:8000/ | grep -q "AutoTaller"
+          curl -fs -X POST http://localhost:8000/api/chat \
+               -H "Content-Type: application/json" \
+               -d '{"mensaje":"estado ABC-123"}' | grep -q "60%"
+          docker logs smoke
+          docker rm -f smoke
+
+      - name: Iniciar sesión en GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publicar imagen (latest + sha)
+        if: github.event_name != 'pull_request'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          build-args: APP_VERSION=1.0.${{ github.run_number }}
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:sha-${{ github.sha }}
+          cache-from: type=gha
+
+  # --------------------------------------------------------------------
+  deploy:
+    name: 4. Despliegue en contenedor
+    needs: docker
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    # Por defecto despliega en el runner de GitHub (Ubuntu con Docker).
+    # Para un servidor propio persistente: registra un self-hosted runner con Docker
+    # y crea la variable de repositorio DEPLOY_RUNNER=self-hosted.
+    runs-on: ${{ vars.DEPLOY_RUNNER || 'ubuntu-latest' }}
+    environment:
+      name: production
+    steps:
+      - name: Nombre de imagen en minúsculas
+        run: echo "IMAGE_NAME=${IMAGE_NAME,,}" >> "$GITHUB_ENV"
+
+      - name: Iniciar sesión en GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Descargar imagen publicada
+        run: docker pull "$IMAGE_NAME:sha-${{ github.sha }}"
+
+      - name: Desplegar contenedor (reemplaza la versión anterior)
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY || github.sha }}
+        run: |
+          docker volume create taller_data > /dev/null
+          docker rm -f tallerautomotriz 2> /dev/null || true
+          docker run -d --name tallerautomotriz --restart unless-stopped \
+            -p 8080:8000 -v taller_data:/data \
+            -e GROQ_API_KEY -e SECRET_KEY \
+            "$IMAGE_NAME:sha-${{ github.sha }}"
+
+      - name: Verificar despliegue (health check)
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fs http://localhost:8080/api/health; then
+              echo; echo "Despliegue OK"; exit 0
+            fi
+            sleep 2
+          done
+          docker logs tallerautomotriz
+          exit 1
+
+      - name: Resumen del despliegue
+        run: |
+          echo "## Despliegue completado" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Imagen: $IMAGE_NAME:sha-${{ github.sha }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Contenedor: tallerautomotriz (puerto 8080 -> 8000)" >> "$GITHUB_STEP_SUMMARY"
+          docker ps --filter name=tallerautomotriz --format "- Estado: {{.Status}}" >> "$GITHUB_STEP_SUMMARY"

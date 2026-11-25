@@ -1,0 +1,16 @@
+services:
+  web:
+    image: ghcr.io/alfredohuchupe/tallerautomotriz:latest
+    build: .
+    container_name: tallerautomotriz
+    ports:
+      - "8080:8000"
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - taller_data:/data
+    restart: unless-stopped
+
+volumes:
+  taller_data:

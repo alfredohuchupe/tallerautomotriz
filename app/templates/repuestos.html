@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Repuestos{% endblock %}
+{% block content %}
+<section class="wrap section">
+  <h1>Cotizar repuestos</h1>
+  <p class="muted">Precios referenciales; no incluyen mano de obra de instalación.</p>
+  <form class="search" method="get">
+    <input name="pieza" value="{{ pieza }}" placeholder="Repuesto (ej. pastillas de freno)" required>
+    <input name="modelo" value="{{ modelo }}" placeholder="Marca y modelo (ej. Kia Rio 2018)" required>
+    <button class="btn btn--primary">Cotizar</button>
+  </form>
+  {% if cotizacion %}
+  <div class="alert {{ 'alert--ok' if cotizacion.disponible else 'alert--warn' }}">{{ cotizacion.mensaje }}</div>
+  {% endif %}
+
+  <div class="table-wrap card">
+    <table>
+      <thead><tr><th>Repuesto</th><th>Precio ref.</th><th>Stock</th></tr></thead>
+      <tbody>
+        {% for r in repuestos %}
+        <tr>
+          <td>{{ r.pieza }}</td>
+          <td>S/ {{ '%.2f' % r.precio }}</td>
+          <td>{% if r.stock > 0 %}<span class="badge badge--ok">{{ r.stock }} unid.</span>{% else %}<span class="badge badge--warn">Agotado</span>{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

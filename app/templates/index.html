@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Inicio{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="wrap hero__inner">
+    <div>
+      <span class="pill">Taller certificado · Lima</span>
+      <h1>Tu vehículo en manos expertas, <span class="accent">sin hacer colas</span>.</h1>
+      <p class="lead">Agenda tu cita en línea, consulta el avance de tu auto en tiempo real y cotiza repuestos con nuestro asistente virtual disponible 24/7.</p>
+      <div class="hero__cta">
+        <a class="btn btn--primary btn--lg" href="{{ url_for('web.citas') }}">📅 Agendar cita</a>
+        <a class="btn btn--ghost btn--lg" href="{{ url_for('web.estado') }}">🔎 Ver estado de mi auto</a>
+      </div>
+      <ul class="hero__stats">
+        <li><b>+2 500</b><span>vehículos atendidos</span></li>
+        <li><b>24/7</b><span>asistente virtual</span></li>
+        <li><b>30</b><span>puntos de inspección</span></li>
+      </ul>
+    </div>
+    <div class="hero__card card">
+      <h3>¿Cómo funciona?</h3>
+      <ol class="steps">
+        <li><b>Agenda</b> por la web o conversando con el asistente.</li>
+        <li><b>Recibe</b> tu código de reserva (ej. #ALT-1001).</li>
+        <li><b>Te recordamos</b> tu mantenimiento por correo y WhatsApp.</li>
+        <li><b>Sigue</b> el avance de tu vehículo con tu placa o ticket.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section class="wrap section" id="servicios">
+  <h2>Servicios</h2>
+  <p class="muted">Precios referenciales desde, sujetos a inspección del vehículo.</p>
+  <div class="grid grid--4">
+    {% for s in servicios %}
+    <article class="card service">
+      <div class="service__icon">{{ s.icono }}</div>
+      <h3>{{ s.nombre }}</h3>
+      <p>{{ s.detalle }}</p>
+      <div class="service__foot">
+        <span class="price">desde S/ {{ s.precio }}</span>
+        <a href="{{ url_for('web.citas', servicio=s.nombre) }}">Agendar →</a>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap grid grid--3">
+    <div class="feature"><span>🤖</span><h3>Asistente virtual</h3><p>Responde dudas, agenda citas, consulta estados y cotiza repuestos usando <i>Function Calling</i>.</p></div>
+    <div class="feature"><span>📲</span><h3>Recordatorios automáticos</h3><p>Automatización RPA que valida datos y envía avisos de mantenimiento por correo y WhatsApp.</p></div>
+    <div class="feature"><span>🚀</span><h3>Siempre actualizado</h3><p>Cada cambio pasa por compilación, pruebas y despliegue en contenedor Docker con GitHub Actions.</p></div>
+  </div>
+</section>
+
+<section class="wrap section contact">
+  <div>
+    <h2>Horario y contacto</h2>
+    <p>{{ horario }}</p>
+    <p>📍 Av. Principal 123, Lima · ☎️ (01) 555-0101</p>
+  </div>
+  <a class="btn btn--primary btn--lg" href="{{ url_for('web.asistente') }}">💬 Hablar con el asistente</a>
+</section>
+{% endblock %}

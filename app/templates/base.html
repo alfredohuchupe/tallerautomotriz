@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}AutoTaller Pro{% endblock %} · Taller Automotriz</title>
+  <meta name="description" content="Taller automotriz: mantenimiento, reparaciones, repuestos y citas en línea con asistente virtual.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar__inner">
+      <a class="brand" href="{{ url_for('web.inicio') }}"><span class="brand__icon">🔧</span> AutoTaller <b>Pro</b></a>
+      <input type="checkbox" id="menu" class="menu-toggle" aria-label="Abrir menú">
+      <label for="menu" class="menu-btn">☰</label>
+      <nav class="nav">
+        {% set ep = request.endpoint %}
+        <a href="{{ url_for('web.inicio') }}" class="{{ 'on' if ep == 'web.inicio' }}">Inicio</a>
+        <a href="{{ url_for('web.citas') }}" class="{{ 'on' if ep == 'web.citas' }}">Agendar cita</a>
+        <a href="{{ url_for('web.estado') }}" class="{{ 'on' if ep == 'web.estado' }}">Estado del vehículo</a>
+        <a href="{{ url_for('web.repuestos') }}" class="{{ 'on' if ep == 'web.repuestos' }}">Repuestos</a>
+        <a href="{{ url_for('web.asistente') }}" class="{{ 'on' if ep == 'web.asistente' }}">Asistente</a>
+        <a href="{{ url_for('web.panel') }}" class="nav__staff {{ 'on' if ep in ('web.panel','web.recordatorios_view','web.recordatorios_ejecutar') }}">Panel taller</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    {% with mensajes = get_flashed_messages(with_categories=true) %}
+      {% if mensajes %}
+      <div class="wrap flashes">
+        {% for cat, m in mensajes %}<div class="alert alert--{{ cat }}">{{ m }}</div>{% endfor %}
+      </div>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer__inner">
+      <div><b>AutoTaller Pro</b><br>Mantenimiento · Reparación · Repuestos</div>
+      <div>Lun–Vie 8:00–18:00 · Sáb 8:00–13:00</div>
+      <div class="muted">v{{ app_version }} · Desplegado con Docker + GitHub Actions</div>
+    </div>
+  </footer>
+
+  {% if request.endpoint != 'web.asistente' %}
+  <!-- Widget flotante del asistente virtual -->
+  <button class="chat-fab" id="chatFab" aria-label="Abrir asistente">💬</button>
+  <section class="chat chat--floating" id="chatWidget" hidden>
+    {% include "_chat.html" %}
+  </section>
+  {% endif %}
+  <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+</body>
+</html>
