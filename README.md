@@ -1,4 +1,4 @@
-# 🔧 AutoTaller Pro: Taller Automotriz
+# Taller Huamán Hnos. · Taller automotriz
 
 [![CI-CD Taller Automotriz](https://github.com/alfredohuchupe/tallerautomotriz/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/alfredohuchupe/tallerautomotriz/actions/workflows/ci-cd.yml)
 

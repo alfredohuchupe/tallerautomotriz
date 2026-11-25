@@ -1,4 +1,4 @@
-"""AutoTaller Pro - Aplicación web del Taller Automotriz.
+"""Taller Huamán Hnos. - Aplicación web del taller automotriz.
 
 Módulos:
 - Sitio web (servicios, contacto)

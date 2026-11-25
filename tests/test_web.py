@@ -7,7 +7,7 @@ import pytest
 def test_paginas_responden(client, ruta):
     r = client.get(ruta)
     assert r.status_code == 200
-    assert "AutoTaller" in r.get_data(as_text=True)
+    assert "Huamán" in r.get_data(as_text=True)
 
 
 def test_health(client):

@@ -3,17 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}AutoTaller Pro · Taller mecánico en Surquillo{% endblock %}</title>
+  <title>{% block title %}Taller Huamán Hnos. · Taller mecánico en Surquillo{% endblock %}</title>
   <meta name="description" content="Taller mecánico en Surquillo, Lima. Mantenimiento, frenos, suspensión y diagnóstico por computadora. Separa tu cita en línea.">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231d1d1b'/><text x='16' y='22' font-family='Arial' font-weight='700' font-size='15' fill='%23f2b705' text-anchor='middle'>AT</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231d1d1b'/><text x='16' y='22' font-family='Arial' font-weight='700' font-size='15' fill='%23f2b705' text-anchor='middle'>TH</text></svg>">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body class="{% block body_class %}{% endblock %}">
   <header class="header">
     <div class="wrap header__inner">
       <a class="logo" href="{{ url_for('web.inicio') }}">
-        <span class="logo__box">AT</span>
-        <span>AutoTaller Pro<small>Taller mecánico</small></span>
+        <span class="logo__box">TH</span>
+        <span>Taller Huamán Hnos.<small>Taller mecánico desde 2009</small></span>
       </a>
       <input type="checkbox" id="menu" class="menu-toggle" aria-label="Abrir menú">
       <label for="menu" class="menu-btn">Menú</label>
@@ -42,7 +42,7 @@
 
   <footer class="footer">
     <div class="wrap footer__inner">
-      <p><b>AutoTaller Pro</b> · Av. Los Mecánicos 1450, Surquillo · (01) 555-0101</p>
+      <p><b>Taller Huamán Hnos.</b> · Av. Los Mecánicos 1450, Surquillo · (01) 555-0101</p>
       <p><a href="{{ url_for('web.panel') }}">Ingreso del personal</a> · v{{ app_version }}</p>
     </div>
   </footer>

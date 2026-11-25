@@ -1,5 +1,5 @@
 # ======================================================================
-# Pipeline CI/CD - AutoTaller Pro (Taller Automotriz)
+# Pipeline CI/CD - Taller Huamán Hnos. (taller automotriz)
 #   1. build   -> Compilación (dependencias, lint, compileall, arranque)
 #   2. test    -> Pruebas automatizadas (pytest + cobertura >= 80 %)
 #   3. docker  -> Construir imagen, prueba de humo del contenedor, publicar en GHCR
@@ -130,7 +130,7 @@ jobs:
             if curl -fs http://localhost:8000/api/health; then echo; break; fi
             sleep 1
           done
-          curl -fs http://localhost:8000/ | grep -q "AutoTaller"
+          curl -fs http://localhost:8000/ | grep -q "Hnos"
           curl -fs -X POST http://localhost:8000/api/chat \
                -H "Content-Type: application/json" \
                -d '{"mensaje":"estado ABC-123"}' | grep -q "60%"

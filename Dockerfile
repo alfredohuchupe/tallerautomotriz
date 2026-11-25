@@ -13,7 +13,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     APP_VERSION=${APP_VERSION} \
     DATABASE_PATH=/data/taller.db \
     PORT=8000
-LABEL org.opencontainers.image.title="AutoTaller Pro" \
+LABEL org.opencontainers.image.title="Taller Huamán Hnos." \
       org.opencontainers.image.description="Web del taller automotriz con citas y asistente virtual" \
       org.opencontainers.image.source="https://github.com/alfredohuchupe/tallerautomotriz"
 
