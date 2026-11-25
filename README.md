@@ -60,8 +60,9 @@ flowchart LR
     A[git push / PR a main] --> B[1. Compilación<br/>pip install · flake8 · compileall]
     B --> C[2. Pruebas<br/>pytest · cobertura ≥ 80%]
     C --> D[3. Docker<br/>build · smoke test · push GHCR]
-    D -->|solo main| E[4. Despliegue<br/>docker pull · docker run · health check]
-    E --> F[(Contenedor tallerautomotriz :8080)]
+    D -->|solo main| E[4. Staging<br/>docker run en el runner · health check]
+    E --> F[5. Producción<br/>Render ejecuta la imagen]
+    F --> G[(Neon PostgreSQL)]
 ```
 
 Archivo: [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml)
@@ -69,24 +70,62 @@ Archivo: [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml)
 | Job | Qué hace | Falla si… |
 |---|---|---|
 | 1. Compilación | Instala dependencias, ejecuta `flake8`, compila con `compileall` y verifica que la app arranca | hay errores de sintaxis o estilo |
-| 2. Pruebas | Ejecuta `pytest` (44 pruebas) con cobertura y publica `junit.xml` y `coverage.xml` | falla alguna prueba o la cobertura baja del 80 % |
+| 2. Pruebas | Ejecuta `pytest` (48 pruebas) con SQLite y con PostgreSQL con cobertura y publica `junit.xml` y `coverage.xml` | falla alguna prueba o la cobertura baja del 80 % |
 | 3. Imagen Docker | Construye la imagen multi-etapa, la arranca, prueba `/api/health`, `/` y `/api/chat` y la publica en GHCR | el contenedor no responde |
 | 4. Despliegue | Descarga la imagen exacta del commit, reemplaza el contenedor, monta el volumen y hace el health check | el contenedor no queda saludable |
 
-### Secretos y variables (Settings → Secrets and variables → Actions)
+| 5. Producción (Render + Neon) | Pide a Render que ejecute la imagen de ese commit y espera a que la URL pública responda con la nueva versión | Render no responde con la versión nueva en 10 minutos |
+
+Además, el job de pruebas ejecuta la suite dos veces: una con SQLite y otra contra un **PostgreSQL real** (contenedor de servicio), la misma base que se usa en producción.
+
+## Arquitectura en producción
+
+```
+Navegador ──► Render (contenedor Docker: web + API + chatbot) ──► Neon (PostgreSQL)
+                    ▲
+GitHub Actions ─────┘  publica la imagen en GHCR y avisa a Render en cada push a main
+```
+
+| Pieza | Dónde | Qué guarda |
+|---|---|---|
+| Imagen Docker | GitHub Packages (GHCR) | El paquete de la app, una versión por commit |
+| Contenedor en ejecución | Render | Nada permanente; se reemplaza en cada despliegue |
+| Base de datos | Neon (PostgreSQL) | Citas, clientes y repuestos; no se pierden al desplegar |
+
+La app elige la base automáticamente: con `DATABASE_URL` usa PostgreSQL, y sin ella usa SQLite (archivo local o volumen `/data` en Docker).
+
+## Puesta en línea con Neon + Render (una sola vez)
+
+1. **Neon** (base de datos): crea una cuenta en neon.tech y un proyecto (región cercana, por ejemplo São Paulo o us-east). Copia la *connection string* `postgresql://...?sslmode=require`. Las tablas se crean solas al arrancar la app.
+2. **Render** (web): crea una cuenta en render.com. Ve a **New → Web Service → Existing Image**, con la imagen `ghcr.io/alfredohuchupe/tallerautomotriz:latest` (es pública, no necesita credenciales). Elige el plan *Free*.
+3. En Render, en **Environment**, agrega:
+   - `DATABASE_URL`: la cadena de Neon
+   - `SECRET_KEY`: un texto largo al azar
+   - `GROQ_API_KEY` (opcional): tu clave de Groq
+4. En Render, en **Settings → Deploy Hook**, copia la URL del hook.
+5. En GitHub, en **Settings → Secrets and variables → Actions**, agrega:
+   - Secret `RENDER_DEPLOY_HOOK`: la URL del hook
+   - Variable `RENDER_URL`: la URL pública, por ejemplo `https://tallerautomotriz.onrender.com`
+6. Haz un push (o ejecuta el workflow con *Run workflow*). El job 5 despliega y verifica la URL pública.
+
+Las claves (Neon, Groq, hook) van solo en Render o en los secretos de GitHub, nunca en el código.
+
+### Secretos y variables de GitHub (Settings → Secrets and variables → Actions)
 
 | Nombre | Tipo | Uso |
 |---|---|---|
-| `GROQ_API_KEY` | Secret (opcional) | Activa la IA en el contenedor desplegado |
-| `SECRET_KEY` | Secret (opcional) | Clave de sesión de Flask |
-| `DEPLOY_RUNNER` | Variable (opcional) | `self-hosted` para desplegar en un servidor propio con Docker (despliegue persistente) |
+| `RENDER_DEPLOY_HOOK` | Secret | Permite al pipeline desplegar en Render |
+| `RENDER_URL` | Variable | URL pública para verificar el despliegue |
+| `GROQ_API_KEY` | Secret (opcional) | IA en el contenedor de staging |
+| `SECRET_KEY` | Secret (opcional) | Clave de sesión en staging |
+| `DEPLOY_RUNNER` | Variable (opcional) | `self-hosted` para el job 4 en un servidor propio |
 
 ## Estructura
 
 ```
 app/
   __init__.py        # create_app (fábrica Flask)
-  db.py              # SQLite + datos de demostración
+  db.py              # SQLite o PostgreSQL (DATABASE_URL) + datos de demostración
   services.py        # agendar_cita, consultar_estado_vehiculo, cotizar_repuesto
   chatbot.py         # Function Calling (Groq) + motor local
   recordatorios.py   # flujo RPA en versión web

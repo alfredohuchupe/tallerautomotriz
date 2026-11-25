@@ -2,7 +2,7 @@
 from flask import Blueprint, current_app, jsonify, request, session
 
 from . import chatbot, recordatorios, services
-from .db import get_db
+from .db import get_db, motor
 from .services import ValidacionError
 
 bp = Blueprint("api", __name__, url_prefix="/api")
@@ -11,7 +11,7 @@ bp = Blueprint("api", __name__, url_prefix="/api")
 @bp.get("/health")
 def health():
     get_db().execute("SELECT 1").fetchone()
-    return jsonify(status="ok", version=current_app.config["APP_VERSION"],
+    return jsonify(status="ok", version=current_app.config["APP_VERSION"], base_datos=motor(),
                    motor_chat="ia" if current_app.config.get("GROQ_API_KEY") else "local")
 
 

@@ -1,4 +1,10 @@
-"""Capa de datos (SQLite)."""
+"""Capa de datos.
+
+- Sin DATABASE_URL: SQLite (archivo local o volumen Docker /data).
+- Con DATABASE_URL=postgresql://...: PostgreSQL (por ejemplo Neon en la nube).
+El resto de la aplicación usa la misma interfaz (execute, executemany, commit)
+con marcadores '?', que aquí se traducen a '%s' para PostgreSQL.
+"""
 import sqlite3
 
 from flask import current_app, g
@@ -39,6 +45,14 @@ CREATE TABLE IF NOT EXISTS repuestos (
 );
 """
 
+# Mismo esquema adaptado a PostgreSQL
+SCHEMA_PG = (
+    SCHEMA.replace("INTEGER PRIMARY KEY AUTOINCREMENT", "SERIAL PRIMARY KEY")
+    .replace("REAL NOT NULL", "DOUBLE PRECISION NOT NULL")
+    .replace("(datetime('now', 'localtime'))",
+             "(to_char(now() AT TIME ZONE 'America/Lima', 'YYYY-MM-DD HH24:MI:SS'))")
+)
+
 CITAS_DEMO = [
     ("ALT-1001", "Carlos Ramírez", "987654321", "carlos@correo.com", "ABC-123",
      "Toyota Corolla 2019", "Mantenimiento preventivo", "2026-11-26 09:00",
@@ -72,10 +86,50 @@ REPUESTOS_DEMO = [
 ]
 
 
+def es_postgres(url):
+    return bool(url) and url.startswith(("postgres://", "postgresql://"))
+
+
+class PostgresDB:
+    """Adaptador mínimo de psycopg con la misma interfaz que sqlite3."""
+
+    def __init__(self, url):
+        import psycopg
+        from psycopg.rows import dict_row
+
+        self.conn = psycopg.connect(url, row_factory=dict_row)
+
+    @staticmethod
+    def _sql(sql):
+        return sql.replace("?", "%s")
+
+    def execute(self, sql, params=()):
+        return self.conn.execute(self._sql(sql), params)
+
+    def executemany(self, sql, filas):
+        with self.conn.cursor() as cur:
+            cur.executemany(self._sql(sql), filas)
+
+    def executescript(self, script):
+        for sentencia in script.split(";"):
+            if sentencia.strip():
+                self.conn.execute(sentencia)
+
+    def commit(self):
+        self.conn.commit()
+
+    def close(self):
+        self.conn.close()
+
+
 def get_db():
     if "db" not in g:
-        g.db = sqlite3.connect(current_app.config["DATABASE"])
-        g.db.row_factory = sqlite3.Row
+        url = current_app.config.get("DATABASE_URL")
+        if es_postgres(url):
+            g.db = PostgresDB(url)
+        else:
+            g.db = sqlite3.connect(current_app.config["DATABASE"])
+            g.db.row_factory = sqlite3.Row
     return g.db
 
 
@@ -85,27 +139,43 @@ def close_db(_e=None):
         conn.close()
 
 
+def motor():
+    return "postgresql" if es_postgres(current_app.config.get("DATABASE_URL")) else "sqlite"
+
+
+def _vacia(conn, tabla):
+    return conn.execute(f"SELECT COUNT(*) AS n FROM {tabla}").fetchone()["n"] == 0
+
+
 def init_db():
     conn = get_db()
-    conn.executescript(SCHEMA)
-    if conn.execute("SELECT COUNT(*) FROM citas").fetchone()[0] == 0:
+    conn.executescript(SCHEMA_PG if motor() == "postgresql" else SCHEMA)
+    if _vacia(conn, "citas"):
         conn.executemany(
             "INSERT INTO citas (codigo, nombre, telefono, correo, placa, modelo, "
             "servicio, fecha_hora, estado, avance, origen) "
             "VALUES (?,?,?,?,?,?,?,?,?,?,?)",
             CITAS_DEMO,
         )
-    if conn.execute("SELECT COUNT(*) FROM clientes").fetchone()[0] == 0:
+    if _vacia(conn, "clientes"):
         conn.executemany(
             "INSERT INTO clientes (nombre, placa, correo, telefono, "
             "fecha_mantenimiento, estado) VALUES (?,?,?,?,?,?)",
             CLIENTES_DEMO,
         )
-    if conn.execute("SELECT COUNT(*) FROM repuestos").fetchone()[0] == 0:
+    if _vacia(conn, "repuestos"):
         conn.executemany(
             "INSERT INTO repuestos (pieza, clave, precio, stock) VALUES (?,?,?,?)",
             REPUESTOS_DEMO,
         )
+    conn.commit()
+
+
+def borrar_tablas():
+    """Solo para pruebas: deja la base vacía."""
+    conn = get_db()
+    for tabla in ("citas", "clientes", "repuestos"):
+        conn.execute(f"DROP TABLE IF EXISTS {tabla}")
     conn.commit()
 
 

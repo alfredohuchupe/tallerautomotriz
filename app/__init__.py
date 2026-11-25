@@ -25,6 +25,7 @@ def create_app(test_config=None):
         DATABASE=os.environ.get(
             "DATABASE_PATH", os.path.join(app.instance_path, "taller.db")
         ),
+        DATABASE_URL=os.environ.get("DATABASE_URL", ""),
         GROQ_API_KEY=os.environ.get("GROQ_API_KEY", ""),
         GROQ_MODEL=os.environ.get("GROQ_MODEL", "openai/gpt-oss-20b"),
         APP_VERSION=os.environ.get("APP_VERSION", __version__),
@@ -33,6 +34,9 @@ def create_app(test_config=None):
 
     if test_config:
         app.config.update(test_config)
+    # Render/Heroku a veces entregan "postgres://"; psycopg prefiere "postgresql://"
+    if app.config["DATABASE_URL"].startswith("postgres://"):
+        app.config["DATABASE_URL"] = "postgresql://" + app.config["DATABASE_URL"][len("postgres://"):]
 
     os.makedirs(os.path.dirname(app.config["DATABASE"]) or ".", exist_ok=True)
 
