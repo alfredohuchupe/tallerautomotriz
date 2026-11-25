@@ -1,24 +1,24 @@
 <div class="chat__head">
   <div>
-    <b>Asistente Técnico Automotriz</b>
-    <small>{{ 'IA · Function Calling (Groq)' if ia_activa else 'Modo local · Function Calling' }}</small>
+    <b>Asistente del taller</b>
+    <small>Citas, estado de tu auto y repuestos</small>
   </div>
   <div class="chat__actions">
-    <button type="button" class="icon-btn" data-chat-reset title="Nueva conversación">↺</button>
+    <button type="button" class="icon-btn" data-chat-reset title="Empezar de nuevo">↺</button>
     <button type="button" class="icon-btn" data-chat-close title="Cerrar">✕</button>
   </div>
 </div>
 <div class="chat__log" data-chat-log>
-  <div class="msg msg--bot">¡Hola! Bienvenido al servicio de atención del taller. ¿En qué puedo ayudarte hoy?</div>
+  <div class="msg msg--bot">Hola, ¿en qué te puedo ayudar?</div>
 </div>
 <div class="chat__chips">
-  <button type="button" data-chip="Quiero agendar una cita">📅 Agendar cita</button>
-  <button type="button" data-chip="¿Cuál es el estado de mi vehículo ABC-123?">🚗 Estado ABC-123</button>
-  <button type="button" data-chip="Quiero cotizar pastillas de freno">🔩 Cotizar repuesto</button>
-  <button type="button" data-chip="¿Cuál es su horario?">🕗 Horario</button>
+  <button type="button" data-chip="Quiero separar una cita">Separar cita</button>
+  <button type="button" data-chip="¿Cuál es el estado de mi vehículo ABC-123?">Estado de ABC-123</button>
+  <button type="button" data-chip="Quiero cotizar pastillas de freno">Cotizar repuesto</button>
+  <button type="button" data-chip="¿Cuál es su horario?">Horario</button>
 </div>
 <form class="chat__form" data-chat-form>
-  <button type="button" class="icon-btn mic" data-chat-mic title="Hablar (voz)">🎙️</button>
-  <input type="text" name="mensaje" placeholder="Escribe tu consulta aquí..." autocomplete="off" maxlength="1000" required>
+  <button type="button" class="icon-btn mic" data-chat-mic title="Hablar">🎙</button>
+  <input type="text" name="mensaje" placeholder="Escribe tu consulta" autocomplete="off" maxlength="1000" required>
   <button type="submit" class="btn btn--primary">Enviar</button>
 </form>

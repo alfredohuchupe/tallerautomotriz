@@ -1,17 +1,12 @@
-{# Tarjeta de estado del vehículo; espera la variable c (cita) #}
+{# Estado del vehículo; espera la variable c (cita) #}
 <div class="status">
-  <div class="status__head">
-    <div>
-      <span class="status__kicker">Ticket #{{ c.codigo }}</span>
-      <h3>{{ c.modelo }}</h3>
-      <span class="muted">Placa {{ c.placa or '—' }} · {{ c.servicio }} · Cita {{ c.fecha_hora }}</span>
-    </div>
-    <div class="gauge" style="--p: {{ c.avance }}"><span>{{ c.avance }}%</span></div>
-  </div>
+  <p class="status__title"><b>{{ c.modelo }}</b> · placa {{ c.placa or '—' }} · código {{ c.codigo }}</p>
+  <p>{{ c.servicio }}, cita del {{ c.fecha_hora }}.</p>
+  <div class="bar"><div style="width: {{ c.avance }}%"></div></div>
+  <p>Avance: <b>{{ c.avance }}%</b> · Etapa: <b>{{ c.estado }}</b></p>
   <ol class="timeline">
-    {% for paso, umbral in [('Recepción', 1), ('Inspección', 30), ('Reparación', 60), ('Control de calidad', 85), ('Listo para entrega', 100)] %}
+    {% for paso, umbral in [('Recepción', 1), ('Revisión', 30), ('Reparación', 60), ('Prueba final', 85), ('Listo', 100)] %}
     <li class="{{ 'done' if c.avance >= umbral }}">{{ paso }}</li>
     {% endfor %}
   </ol>
-  <p class="status__now">Etapa actual: <b>{{ c.estado }}</b></p>
 </div>

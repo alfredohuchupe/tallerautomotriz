@@ -19,7 +19,7 @@
     const abierto = (dia >= 1 && dia <= 5 && h >= 8 && h < 18) || (dia === 6 && h >= 8 && h < 13);
     const badge = $("[data-abierto]");
     if (badge) {
-      badge.textContent = abierto ? "Abierto ahora" : "Cerrado ahora · agenda en línea 24/7";
+      badge.textContent = abierto ? "Abierto ahora" : "Cerrado ahora";
       badge.classList.add(abierto ? "is-open" : "is-closed");
     }
     $$("[data-horario] tr").forEach((tr) => {
@@ -83,15 +83,17 @@
   /* ---------- Estado del vehículo ---------- */
   const resEstado = $("[data-estado-resultado]");
   const formEstado = $('[data-form="estado"]');
-  const PASOS = [["Recepción", 1], ["Inspección", 30], ["Reparación", 60], ["Control de calidad", 85], ["Listo para entrega", 100]];
+  const PASOS = [["Recepción", 1], ["Revisión", 30], ["Reparación", 60], ["Prueba final", 85], ["Listo", 100]];
 
   function tarjetaEstado(c) {
     const pasos = PASOS.map(([n, u]) => `<li class="${c.avance >= u ? "done" : ""}">${n}</li>`).join("");
-    return `<div class="status"><div class="status__head"><div>
-      <span class="status__kicker">Ticket #${esc(c.codigo)}</span><h3>${esc(c.modelo)}</h3>
-      <span class="muted">Placa ${esc(c.placa || "—")} · ${esc(c.servicio)} · Cita ${esc(c.fecha_hora)}</span></div>
-      <div class="gauge" style="--p:${Number(c.avance)}"><span>${Number(c.avance)}%</span></div></div>
-      <ol class="timeline">${pasos}</ol><p class="status__now">Etapa actual: <b>${esc(c.estado)}</b></p></div>`;
+    const av = Number(c.avance);
+    return `<div class="status">
+      <p class="status__title"><b>${esc(c.modelo)}</b> · placa ${esc(c.placa || "—")} · código ${esc(c.codigo)}</p>
+      <p>${esc(c.servicio)}, cita del ${esc(c.fecha_hora)}.</p>
+      <div class="bar"><div style="width:${av}%"></div></div>
+      <p>Avance: <b>${av}%</b> · Etapa: <b>${esc(c.estado)}</b></p>
+      <ol class="timeline">${pasos}</ol></div>`;
   }
 
   async function consultarEstado(valor) {
@@ -99,7 +101,7 @@
     if (!valor || !resEstado) return;
     $('input[name="q"]', formEstado).value = valor.toUpperCase();
     $("#estado").scrollIntoView({ behavior: "smooth" });
-    resEstado.innerHTML = '<p class="muted">Consultando…</p>';
+    resEstado.innerHTML = '<p class="note">Buscando…</p>';
     const res = await api("/api/estado/" + encodeURIComponent(valor));
     resEstado.innerHTML = res.data.encontrado
       ? tarjetaEstado(res.data.cita)
