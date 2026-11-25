@@ -70,7 +70,7 @@ Archivo: [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml)
 | Job | Qué hace | Falla si… |
 |---|---|---|
 | 1. Compilación | Instala dependencias, ejecuta `flake8`, compila con `compileall` y verifica que la app arranca | hay errores de sintaxis o estilo |
-| 2. Pruebas | Ejecuta `pytest` (48 pruebas) con SQLite y con PostgreSQL con cobertura y publica `junit.xml` y `coverage.xml` | falla alguna prueba o la cobertura baja del 80 % |
+| 2. Pruebas | Ejecuta `pytest` (50 pruebas) con SQLite y con PostgreSQL con cobertura y publica `junit.xml` y `coverage.xml` | falla alguna prueba o la cobertura baja del 80 % |
 | 3. Imagen Docker | Construye la imagen multi-etapa, la arranca, prueba `/api/health`, `/` y `/api/chat` y la publica en GHCR | el contenedor no responde |
 | 4. Despliegue | Descarga la imagen exacta del commit, reemplaza el contenedor, monta el volumen y hace el health check | el contenedor no queda saludable |
 

@@ -30,6 +30,8 @@ def create_app(test_config=None):
         GROQ_MODEL=os.environ.get("GROQ_MODEL", "openai/gpt-oss-20b"),
         APP_VERSION=os.environ.get("APP_VERSION", __version__),
         WHATSAPP_PAIS=os.environ.get("WHATSAPP_PAIS", "51"),
+        # Número de WhatsApp del negocio (ej. 51987654321). Vacío: WhatsApp pide elegir contacto.
+        WHATSAPP_NEGOCIO=os.environ.get("WHATSAPP_NEGOCIO", ""),
     )
 
     if test_config:
@@ -55,6 +57,8 @@ def create_app(test_config=None):
         return {
             "app_version": app.config["APP_VERSION"],
             "ia_activa": bool(app.config.get("GROQ_API_KEY")),
+            "whatsapp_url": "https://wa.me/" + app.config["WHATSAPP_NEGOCIO"]
+            if app.config["WHATSAPP_NEGOCIO"] else "https://api.whatsapp.com/send",
         }
 
     return app

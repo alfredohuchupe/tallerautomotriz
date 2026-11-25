@@ -1,0 +1,17 @@
+{# Tarjeta de estado del vehículo; espera la variable c (cita) #}
+<div class="status">
+  <div class="status__head">
+    <div>
+      <span class="status__kicker">Ticket #{{ c.codigo }}</span>
+      <h3>{{ c.modelo }}</h3>
+      <span class="muted">Placa {{ c.placa or '—' }} · {{ c.servicio }} · Cita {{ c.fecha_hora }}</span>
+    </div>
+    <div class="gauge" style="--p: {{ c.avance }}"><span>{{ c.avance }}%</span></div>
+  </div>
+  <ol class="timeline">
+    {% for paso, umbral in [('Recepción', 1), ('Inspección', 30), ('Reparación', 60), ('Control de calidad', 85), ('Listo para entrega', 100)] %}
+    <li class="{{ 'done' if c.avance >= umbral }}">{{ paso }}</li>
+    {% endfor %}
+  </ol>
+  <p class="status__now">Etapa actual: <b>{{ c.estado }}</b></p>
+</div>

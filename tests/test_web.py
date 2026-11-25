@@ -59,3 +59,18 @@ def test_recordatorios_web(client):
         "telefono": "999888777", "fecha_mantenimiento": "2026-12-20"})
     assert "NEW-001" in client.get("/recordatorios").get_data(as_text=True)
     assert client.post("/api/recordatorios/ejecutar").get_json()["enviados"][0]["placa"] == "NEW-001"
+
+
+def test_pagina_unica_con_todas_las_secciones(client):
+    html = client.get("/").get_data(as_text=True)
+    for seccion in ('id="ofertas"', 'id="servicios"', 'id="cita"', 'id="estado"',
+                    'id="repuestos"', 'id="nosotros"', 'id="contacto"', 'id="chatWidget"'):
+        assert seccion in html
+    # El servicio en oferta muestra precio regular y precio de oferta
+    assert "S/ 190" in html and "S/ 150" in html
+
+
+def test_rutas_antiguas_llevan_a_su_seccion(client):
+    assert 'data-seccion-inicial="estado"' in client.get("/estado").get_data(as_text=True)
+    assert 'data-seccion-inicial="repuestos"' in client.get("/repuestos").get_data(as_text=True)
+    assert "data-open" in client.get("/asistente").get_data(as_text=True)

@@ -3,25 +3,40 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}AutoTaller Pro{% endblock %} · Taller Automotriz</title>
-  <meta name="description" content="Taller automotriz: mantenimiento, reparaciones, repuestos y citas en línea con asistente virtual.">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+  <title>{% block title %}AutoTaller Pro · Mecánica automotriz en Lima{% endblock %}</title>
+  <meta name="description" content="Taller de mecánica automotriz en Lima: mantenimiento, frenos, diagnóstico computarizado y repuestos. Agenda tu cita en línea y sigue el avance de tu auto.">
+  <meta name="theme-color" content="#16181d">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='12' fill='%2316181d'/><path d='M14 40h36l-4-12H18z' fill='%23ffc21a'/><circle cx='22' cy='42' r='5' fill='%23f3efe6'/><circle cx='42' cy='42' r='5' fill='%23f3efe6'/></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
+  <div class="topstrip">
+    <div class="wrap topstrip__inner">
+      <span>📍 Av. Los Mecánicos 1450, Surquillo · Lima</span>
+      <span class="topstrip__right"><span class="open-badge" data-abierto>Horario</span> · ☎ (01) 555-0101</span>
+    </div>
+  </div>
   <header class="topbar">
     <div class="wrap topbar__inner">
-      <a class="brand" href="{{ url_for('web.inicio') }}"><span class="brand__icon">🔧</span> AutoTaller <b>Pro</b></a>
+      <a class="brand" href="{{ url_for('web.inicio') }}#inicio" aria-label="AutoTaller Pro, inicio">
+        <span class="brand__mark" aria-hidden="true">
+          <svg viewBox="0 0 40 40"><path d="M6 26h28l-3-9H9z" fill="currentColor"/><circle cx="12" cy="28" r="4" fill="#16181d" stroke="currentColor" stroke-width="2.5"/><circle cx="28" cy="28" r="4" fill="#16181d" stroke="currentColor" stroke-width="2.5"/><path d="M12 17l3-6h10l3 6" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>
+        </span>
+        <span class="brand__text">AutoTaller<b>Pro</b><small>Mecánica automotriz · desde 2009</small></span>
+      </a>
       <input type="checkbox" id="menu" class="menu-toggle" aria-label="Abrir menú">
-      <label for="menu" class="menu-btn">☰</label>
+      <label for="menu" class="menu-btn" aria-hidden="true"><span></span><span></span><span></span></label>
       <nav class="nav">
-        {% set ep = request.endpoint %}
-        <a href="{{ url_for('web.inicio') }}" class="{{ 'on' if ep == 'web.inicio' }}">Inicio</a>
-        <a href="{{ url_for('web.citas') }}" class="{{ 'on' if ep == 'web.citas' }}">Agendar cita</a>
-        <a href="{{ url_for('web.estado') }}" class="{{ 'on' if ep == 'web.estado' }}">Estado del vehículo</a>
-        <a href="{{ url_for('web.repuestos') }}" class="{{ 'on' if ep == 'web.repuestos' }}">Repuestos</a>
-        <a href="{{ url_for('web.asistente') }}" class="{{ 'on' if ep == 'web.asistente' }}">Asistente</a>
-        <a href="{{ url_for('web.panel') }}" class="nav__staff {{ 'on' if ep in ('web.panel','web.recordatorios_view','web.recordatorios_ejecutar') }}">Panel taller</a>
+        {% set home = url_for('web.inicio') %}
+        <a href="{{ home }}#servicios">Servicios</a>
+        <a href="{{ home }}#nosotros">Nosotros</a>
+        <a href="{{ home }}#estado">Mi vehículo</a>
+        <a href="{{ home }}#repuestos">Repuestos</a>
+        <a href="{{ home }}#contacto">Contacto</a>
+        <a href="{{ home }}#cita" class="btn btn--yellow nav__cta">Agendar cita</a>
       </nav>
     </div>
   </header>
@@ -38,20 +53,41 @@
   </main>
 
   <footer class="footer">
-    <div class="wrap footer__inner">
-      <div><b>AutoTaller Pro</b><br>Mantenimiento · Reparación · Repuestos</div>
-      <div>Lun–Vie 8:00–18:00 · Sáb 8:00–13:00</div>
-      <div class="muted">v{{ app_version }} · Desplegado con Docker + GitHub Actions</div>
+    <div class="hazard" aria-hidden="true"></div>
+    <div class="wrap footer__grid">
+      <div>
+        <div class="brand brand--footer"><span class="brand__text">AutoTaller<b>Pro</b></span></div>
+        <p>Mecánica automotriz de confianza en Lima. Diagnóstico honesto, precios claros y tu auto listo cuando te lo prometemos.</p>
+      </div>
+      <div>
+        <h4>Visítanos</h4>
+        <p>Av. Los Mecánicos 1450, Surquillo<br>Lun–Vie 8:00–18:00 · Sáb 8:00–13:00</p>
+      </div>
+      <div>
+        <h4>Contacto</h4>
+        <p>☎ (01) 555-0101<br>✉ citas@autotallerpro.pe</p>
+      </div>
+      <div>
+        <h4>Accesos</h4>
+        <p><a href="{{ url_for('web.inicio') }}#cita">Agendar cita</a><br>
+           <a href="{{ url_for('web.inicio') }}#estado">Estado de mi vehículo</a><br>
+           <a href="{{ url_for('web.panel') }}">Acceso del personal</a></p>
+      </div>
+    </div>
+    <div class="wrap footer__legal">
+      <span>© 2026 AutoTaller Pro · Proyecto académico</span>
+      <span>v{{ app_version }} · Docker + GitHub Actions</span>
     </div>
   </footer>
 
-  {% if request.endpoint != 'web.asistente' %}
-  <!-- Widget flotante del asistente virtual -->
-  <button class="chat-fab" id="chatFab" aria-label="Abrir asistente">💬</button>
-  <section class="chat chat--floating" id="chatWidget" hidden>
+  <!-- Asistente virtual flotante -->
+  <button class="chat-fab" id="chatFab" aria-label="Abrir asistente virtual" {% if abrir_chat %}data-open{% endif %}>
+    <span class="chat-fab__icon">💬</span><span class="chat-fab__label">¿Te ayudo?</span>
+  </button>
+  <section class="chat chat--floating" id="chatWidget" hidden aria-label="Asistente virtual">
     {% include "_chat.html" %}
   </section>
-  {% endif %}
   <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>

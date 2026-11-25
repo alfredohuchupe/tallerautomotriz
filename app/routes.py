@@ -8,14 +8,33 @@ from .services import ValidacionError
 bp = Blueprint("web", __name__)
 
 
+def pagina(seccion=None, confirmacion=None, form=None, abrir_chat=False):
+    """Toda la web pública es una sola página; las rutas solo indican a qué sección ir."""
+    consulta = request.args.get("q", "").strip()
+    pieza = request.args.get("pieza", "").strip()
+    modelo = request.args.get("modelo", "").strip()
+    resultado = services.consultar_estado_vehiculo(consulta) if consulta else None
+    cotizacion = None
+    if pieza or modelo:
+        try:
+            cotizacion = services.cotizar_repuesto(pieza, modelo)
+        except ValidacionError as e:
+            flash(str(e), "error")
+    return render_template(
+        "index.html", servicios=services.SERVICIOS, ofertas=services.OFERTAS, horario=services.HORARIO,
+        repuestos=services.listar_repuestos(), confirmacion=confirmacion, form=form or {},
+        consulta=consulta, resultado=resultado, pieza=pieza, modelo=modelo,
+        cotizacion=cotizacion, seccion=seccion, abrir_chat=abrir_chat)
+
+
 @bp.get("/")
 def inicio():
-    return render_template("index.html", servicios=services.SERVICIOS,
-                           horario=services.HORARIO)
+    return pagina()
 
 
 @bp.route("/citas", methods=["GET", "POST"])
 def citas():
+    """Sin JavaScript el formulario se envía aquí; con JavaScript se usa /api/citas."""
     confirmacion = None
     form = request.form if request.method == "POST" else {}
     if request.method == "POST":
@@ -32,37 +51,22 @@ def citas():
             )
         except ValidacionError as e:
             flash(str(e), "error")
-    return render_template("citas.html", servicios=services.SERVICIOS,
-                           horario=services.HORARIO, confirmacion=confirmacion,
-                           form=form)
+    return pagina("cita", confirmacion=confirmacion, form=form)
 
 
 @bp.get("/estado")
 def estado():
-    consulta = request.args.get("q", "").strip()
-    resultado = None
-    if consulta:
-        resultado = services.consultar_estado_vehiculo(consulta)
-    return render_template("estado.html", consulta=consulta, resultado=resultado)
+    return pagina("estado")
 
 
 @bp.get("/repuestos")
 def repuestos():
-    pieza = request.args.get("pieza", "").strip()
-    modelo = request.args.get("modelo", "").strip()
-    cotizacion = None
-    if pieza or modelo:
-        try:
-            cotizacion = services.cotizar_repuesto(pieza, modelo)
-        except ValidacionError as e:
-            flash(str(e), "error")
-    return render_template("repuestos.html", repuestos=services.listar_repuestos(),
-                           cotizacion=cotizacion, pieza=pieza, modelo=modelo)
+    return pagina("repuestos")
 
 
 @bp.get("/asistente")
 def asistente():
-    return render_template("asistente.html")
+    return pagina(abrir_chat=True)
 
 
 # ---------------------------------------------------------------- panel interno

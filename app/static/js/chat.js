@@ -16,6 +16,7 @@
       if (!widget.hidden) input.focus();
     });
     root.querySelector("[data-chat-close]").addEventListener("click", () => (widget.hidden = true));
+    if (fab.hasAttribute("data-open")) widget.hidden = false; // ruta /asistente
   }
 
   function add(text, cls) {

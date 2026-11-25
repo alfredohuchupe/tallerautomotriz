@@ -11,22 +11,33 @@ import unicodedata
 from .db import get_db
 
 SERVICIOS = [
-    {"nombre": "Mantenimiento preventivo", "precio": 150, "icono": "🛠️",
-     "detalle": "Cambio de aceite, filtros y revisión de 30 puntos."},
-    {"nombre": "Cambio de aceite", "precio": 60, "icono": "🛢️",
-     "detalle": "Aceite sintético o semisintético y filtro."},
-    {"nombre": "Cambio de frenos", "precio": 120, "icono": "🛑",
-     "detalle": "Pastillas, discos y purga del sistema."},
-    {"nombre": "Diagnóstico electrónico", "precio": 80, "icono": "💻",
-     "detalle": "Escaneo computarizado OBD-II y reporte."},
-    {"nombre": "Alineamiento y balanceo", "precio": 70, "icono": "🎯",
-     "detalle": "Alineación por computadora y balanceo de 4 llantas."},
-    {"nombre": "Suspensión", "precio": 180, "icono": "🚙",
-     "detalle": "Revisión y cambio de amortiguadores y rótulas."},
-    {"nombre": "Afinamiento de motor", "precio": 200, "icono": "⚙️",
-     "detalle": "Bujías, inyectores, limpieza de cuerpo de aceleración."},
-    {"nombre": "Aire acondicionado", "precio": 110, "icono": "❄️",
-     "detalle": "Carga de gas, revisión de compresor y fugas."},
+    {"nombre": "Mantenimiento preventivo", "precio": 150, "icono": "mantenimiento",
+     "detalle": "Cambio de aceite, filtros y revisión de 30 puntos según kilometraje."},
+    {"nombre": "Cambio de aceite", "precio": 60, "icono": "aceite",
+     "detalle": "Aceite sintético o semisintético, filtro y reseteo del indicador."},
+    {"nombre": "Cambio de frenos", "precio": 120, "icono": "frenos",
+     "detalle": "Pastillas, rectificado de discos y purga del sistema."},
+    {"nombre": "Diagnóstico electrónico", "precio": 80, "icono": "scanner",
+     "detalle": "Escaneo computarizado OBD-II con reporte de fallas."},
+    {"nombre": "Alineamiento y balanceo", "precio": 70, "icono": "alineamiento",
+     "detalle": "Alineación 3D por computadora y balanceo de 4 llantas."},
+    {"nombre": "Suspensión", "precio": 180, "icono": "suspension",
+     "detalle": "Revisión y cambio de amortiguadores, rótulas y terminales."},
+    {"nombre": "Afinamiento de motor", "precio": 200, "icono": "motor",
+     "detalle": "Bujías, limpieza de inyectores y cuerpo de aceleración."},
+    {"nombre": "Aire acondicionado", "precio": 110, "icono": "aire",
+     "detalle": "Carga de gas, detección de fugas y revisión del compresor."},
+]
+
+OFERTAS = [
+    {"servicio": "Mantenimiento preventivo", "regular": 190, "oferta": 150,
+     "incluye": "Aceite sintético, 3 filtros y revisión de 30 puntos"},
+    {"servicio": "Cambio de frenos", "regular": 160, "oferta": 120,
+     "incluye": "Pastillas delanteras, rectificado y purga"},
+    {"servicio": "Alineamiento y balanceo", "regular": 95, "oferta": 70,
+     "incluye": "Alineación 3D + balanceo de 4 llantas"},
+    {"servicio": "Diagnóstico electrónico", "regular": 110, "oferta": 80,
+     "incluye": "Escaneo completo y reporte impreso"},
 ]
 
 HORARIO = "Lunes a viernes 8:00 a. m. – 6:00 p. m. | Sábados 8:00 a. m. – 1:00 p. m."
