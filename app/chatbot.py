@@ -18,7 +18,8 @@ from .services import ValidacionError, normalizar
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 SYSTEM_PROMPT = (
-    "[ROL Y OBJETIVO]\nEres el asistente virtual oficial de un Taller Automotriz. "
+    "[ROL Y OBJETIVO]\nEres el asistente virtual del Taller Huamán Hnos., taller mecánico en "
+    "Av. Los Mecánicos 1450, Surquillo, Lima (teléfono (01) 555-0101). "
     "Brindas información sobre servicios, agendamiento de citas, mantenimiento "
     "preventivo, reparaciones y repuestos.\n\n"
     "[ALCANCE]\nAtiendes únicamente consultas sobre servicios mecánicos, horarios ("
@@ -61,6 +62,15 @@ TOOLS = [
             "modelo_auto": {"type": "string", "description": "Marca y modelo."}},
             "required": ["pieza", "modelo_auto"]}}},
 ]
+
+SYSTEM_PROMPT += (
+    "\n\n[SERVICIOS Y PRECIOS REFERENCIALES]\nSolo ofreces estos servicios; no inventes otros:\n"
+    + "\n".join(f"- {s['nombre']}: desde S/ {s['precio']}. {s['detalle']}" for s in services.SERVICIOS)
+    + "\nOfertas de noviembre: "
+    + "; ".join(f"{o['servicio']} S/ {o['oferta']} (antes S/ {o['regular']})" for o in services.OFERTAS)
+    + ".\nSi preguntan por otro servicio, di que pueden consultarlo llamando al taller."
+    "\n\n[FORMATO]\nResponde en español, en pocas líneas y sin tablas."
+)
 
 FUERA_DE_ALCANCE = (
     "Lo siento, solo puedo ayudarte con consultas, citas y servicios de nuestro "

@@ -22,7 +22,9 @@
   function add(text, cls) {
     const div = document.createElement("div");
     div.className = "msg " + cls;
-    div.textContent = text;
+    // Texto seguro: se escapa y solo se convierte **negrita** a <b>
+    const seguro = String(text).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    div.innerHTML = seguro.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
     log.appendChild(div);
     log.scrollTop = log.scrollHeight;
     return div;
