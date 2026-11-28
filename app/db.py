@@ -149,7 +149,13 @@ def _vacia(conn, tabla):
 
 def init_db():
     conn = get_db()
-    conn.executescript(SCHEMA_PG if motor() == "postgresql" else SCHEMA)
+    if motor() == "postgresql":
+        # gunicorn arranca varios procesos a la vez: este candado hace que solo uno
+        # cree las tablas y cargue los datos; los demás esperan al commit.
+        conn.execute("SELECT pg_advisory_xact_lock(4242)")
+        conn.executescript(SCHEMA_PG)
+    else:
+        conn.executescript(SCHEMA)
     if _vacia(conn, "citas"):
         conn.executemany(
             "INSERT INTO citas (codigo, nombre, telefono, correo, placa, modelo, "
