@@ -2,6 +2,9 @@
 
 [![CI-CD Taller Automotriz](https://github.com/alfredohuchupe/tallerautomotriz/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/alfredohuchupe/tallerautomotriz/actions/workflows/ci-cd.yml)
 
+**Web en línea:** https://taller-huaman.onrender.com (Render + base de datos PostgreSQL en Neon)
+
+
 Aplicación web de un taller automotriz que une, en un solo sistema, los dos trabajos previos del curso:
 
 | Origen | Qué era | Qué es ahora en la web |
