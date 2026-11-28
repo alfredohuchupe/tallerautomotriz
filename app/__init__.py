@@ -32,6 +32,9 @@ def create_app(test_config=None):
         WHATSAPP_PAIS=os.environ.get("WHATSAPP_PAIS", "51"),
         # Número de WhatsApp del negocio (ej. 51987654321). Vacío: WhatsApp pide elegir contacto.
         WHATSAPP_NEGOCIO=os.environ.get("WHATSAPP_NEGOCIO", ""),
+        # Clave que usa Power Automate para leer clientes y marcarlos como enviados.
+        # Vacía: la API del RPA queda desactivada.
+        RPA_TOKEN=os.environ.get("RPA_TOKEN", ""),
     )
 
     if test_config:

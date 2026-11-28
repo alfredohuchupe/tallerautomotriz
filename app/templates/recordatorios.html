@@ -19,6 +19,17 @@
     <span>📞 Validar teléfono<br><code>^\d{9}$</code></span><i>→</i><span>📧 Correo + 💬 WhatsApp</span><i>→</i><span>✅ Estado = Enviado</span>
   </div>
 
+  <div class="card report">
+    <h3>Envío automático con Power Automate</h3>
+    <p>El flujo de Power Automate Desktop, en la PC del taller, toma de aquí los clientes pendientes, envía el correo por Outlook y el WhatsApp, y marca cada cliente como <b>Enviado</b> en esta base de datos.</p>
+    <table>
+      <tr><th>Paso del flujo</th><th>Dirección</th></tr>
+      <tr><td>Leer clientes pendientes</td><td><code>GET {{ request.host_url }}api/rpa/pendientes</code></td></tr>
+      <tr><td>Marcar como enviado</td><td><code>POST {{ request.host_url }}api/rpa/enviado/&lt;Id&gt;</code></td></tr>
+    </table>
+    <p class="note">Las dos direcciones piden la cabecera <code>X-RPA-Token</code> con la clave del taller. El botón «Ejecutar flujo» de esta página hace lo mismo sin Power Automate y deja el correo y el WhatsApp listos para enviar con un clic.</p>
+  </div>
+
   {% if reporte %}
   <div class="card report">
     <h3>Resultado de la ejecución</h3>

@@ -101,3 +101,11 @@ def reiniciar_estados():
     conn = get_db()
     conn.execute("UPDATE clientes SET estado='Pendiente'")
     conn.commit()
+
+
+def marcar_enviado(cliente_id):
+    """Lo usa Power Automate después de enviar el correo y el WhatsApp."""
+    conn = get_db()
+    cur = conn.execute("UPDATE clientes SET estado='Enviado' WHERE id=?", (cliente_id,))
+    conn.commit()
+    return cur.rowcount > 0

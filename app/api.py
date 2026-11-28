@@ -1,4 +1,6 @@
 """API REST (JSON) del taller."""
+import hmac
+
 from flask import Blueprint, current_app, jsonify, request, session
 
 from . import chatbot, recordatorios, services
@@ -79,3 +81,44 @@ def chat_reiniciar():
 @bp.post("/recordatorios/ejecutar")
 def recordatorios_ejecutar():
     return jsonify(recordatorios.ejecutar_recordatorios(current_app.config["WHATSAPP_PAIS"]))
+
+
+# ----------------------------------------------------------------------
+# Integración con Power Automate Desktop (RPA)
+# El flujo pide los clientes pendientes, envía el correo (Outlook) y el
+# WhatsApp desde la PC, y luego marca cada cliente como "Enviado".
+# Protegido con la cabecera X-RPA-Token porque devuelve datos personales.
+# ----------------------------------------------------------------------
+def _rpa_autorizado():
+    token = current_app.config.get("RPA_TOKEN", "")
+    enviado = request.headers.get("X-RPA-Token", "")
+    return bool(token) and hmac.compare_digest(token, enviado)
+
+
+@bp.get("/rpa/pendientes")
+def rpa_pendientes():
+    if not _rpa_autorizado():
+        return jsonify(error="No autorizado"), 401
+    clientes = [
+        {
+            "Id": c["id"],
+            "Nombre": c["nombre"],
+            "Placa": c["placa"],
+            "Correo": c["correo"] or "",
+            "Teléfono": c["telefono"] or "",
+            "FechaMantenimiento": c["fecha_mantenimiento"],
+            "Estado": c["estado"],
+        }
+        for c in recordatorios.listar_clientes(current_app.config["WHATSAPP_PAIS"])
+        if c["estado"] == "Pendiente"
+    ]
+    return jsonify(total=len(clientes), clientes=clientes)
+
+
+@bp.post("/rpa/enviado/<int:cliente_id>")
+def rpa_marcar_enviado(cliente_id):
+    if not _rpa_autorizado():
+        return jsonify(error="No autorizado"), 401
+    if not recordatorios.marcar_enviado(cliente_id):
+        return jsonify(error="Cliente no encontrado"), 404
+    return jsonify(ok=True, id=cliente_id, estado="Enviado")
